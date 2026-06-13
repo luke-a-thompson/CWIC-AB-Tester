@@ -1,0 +1,230 @@
+[
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/ARAMCO_Better.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Afghan_Royal_Army.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/American_Soviet_Outreach.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/BAN_Guerilla_Force.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Break_Treaty.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Combat_Rising_Prices.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Communist_Spy.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Cut_Funding.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Empower_White_Businesses.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Exploit_Resources.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Generic_Arab_Industry.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Generic_Construction.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Generic_Irredentism.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Generic_MiG_17.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Generic_Military_Production.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Generic_Resource_Exctraction.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Increase_Machine_Tool_Production.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Airforce.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Kashmir_Agreement.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Socialist_Party.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Sri_Lanka_Agreement.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Japanese_resistance.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/KMT_Martial_Law.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Kenya_Navy.dds",
+    "error": "[dds @ 0x576b4822b480] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x576b4822d480] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Kenyan_Armed_Forces.dds",
+    "error": "[dds @ 0x62a204896400] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x62a204898440] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Kenyan_Army.dds",
+    "error": "[dds @ 0x575ec6fe0480] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x575ec6fe2480] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Maoism_Ideology.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Meet_with_Brezhnev.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Monarchist_Reduce_Autonomy.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/NationalCatholicism.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/National_Catholicism.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/One_Korea_Under_Kim.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/PRC_Decleration.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/PRC_Military.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Purge_the_Southern_Communists.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Raise_Production_Quotas.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/SOV_Modernize_Black_Sea_Shipyard.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Social_Modernization.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Soviet_Resource_Aid.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Soviet_Relations.dds",
+    "error": "[dds @ 0x56bb034e6400] Invalid DDS header.\n[dds @ 0x56bb034f3680] Invalid DDS header.\nError while decoding stream #0:0: Invalid data found when processing input\nCannot determine format of input stream 0:0 after EOF\nError marking filters as finished"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Spain_Air_Force.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Spain_Army.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Spain_Navy.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/The_Kings_Speech.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/The_Purge.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/UAR_MiG_17.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_Air_Force.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_marines.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_army.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_navy.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Ustase_Refugees.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/expand_legal_power.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/focus_gun_control.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/fracoop/National_Security_Act.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/fracoop/focus_arc_de_triomphe.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/gsg9.tga",
+    "error": "Output file #0 does not contain any stream"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/japanese_rifles.tga",
+    "error": "Output file #0 does not contain any stream"
+  }
+]

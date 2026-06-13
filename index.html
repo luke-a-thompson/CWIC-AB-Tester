@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CWIC AB Tester</title>
+<style>
+:root { color-scheme: dark; --bg:#101217; --panel:#1a1f28; --line:#313744; --text:#edf1f7; --muted:#9da8b8; --keep:#82d173; --delete:#ef767a; --accent:#76c7df; --warn:#e5b769; }
+* { box-sizing: border-box; }
+body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif; }
+header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 18px; border-bottom:1px solid var(--line); background:#11151c; }
+h1 { font-size:18px; margin:0; }
+button, input, select { font:inherit; }
+button { border:1px solid var(--line); border-radius:6px; background:#242b36; color:var(--text); padding:8px 11px; cursor:pointer; }
+button:hover { border-color:var(--accent); }
+button.keep { border-color:#355d38; background:#1d3722; }
+button.delete { border-color:#743438; background:#3a2023; }
+button.primary { border-color:#397184; background:#18333d; }
+button:disabled { opacity:.45; cursor:not-allowed; }
+.top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.layout { display:grid; grid-template-columns:minmax(0,1fr) 340px; min-height:calc(100vh - 62px); }
+main { display:grid; place-items:center; padding:18px; }
+.card { width:min(760px,100%); background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.image-wrap { display:grid; place-items:center; min-height:420px; padding:24px; background-color:#0c0f14; background-image:linear-gradient(45deg,#151a21 25%,transparent 25%),linear-gradient(-45deg,#151a21 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#151a21 75%),linear-gradient(-45deg,transparent 75%,#151a21 75%); background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0; }
+.image-wrap img { max-width:min(420px,80vw); max-height:420px; width:auto; height:auto; object-fit:contain; image-rendering:auto; }
+.decision-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px; border-top:1px solid var(--line); }
+.decision-row button { font-size:16px; padding:13px; }
+.meta { padding:0 14px 14px; }
+.path { font-size:13px; word-break:break-word; max-height:64px; overflow:auto; margin:10px 0; }
+.bottom-age { display:flex; flex-wrap:wrap; gap:10px 16px; color:var(--muted); border-top:1px solid var(--line); padding-top:10px; }
+.bottom-age strong { color:var(--text); }
+aside { border-left:1px solid var(--line); background:#131820; padding:16px; overflow:auto; }
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.stat { background:#0f131a; border:1px solid var(--line); border-radius:7px; padding:10px; }
+.stat span { display:block; color:var(--muted); font-size:12px; }
+.stat strong { display:block; font-size:20px; margin-top:2px; }
+.progress { height:9px; background:#0b0e13; border-radius:999px; overflow:hidden; border:1px solid var(--line); margin:8px 0 16px; }
+.bar { height:100%; width:0; background:linear-gradient(90deg,var(--keep),var(--delete)); }
+.panel { border:1px solid var(--line); border-radius:7px; padding:12px; margin-bottom:12px; background:#171d25; }
+.panel h2 { font-size:14px; margin:0 0 8px; }
+.small { color:var(--muted); font-size:12px; }
+.status { color:var(--muted); margin-top:8px; }
+.warning { color:var(--warn); }
+.list { display:grid; gap:4px; margin:0; padding:0; list-style:none; max-height:180px; overflow:auto; }
+.list li { font-size:12px; word-break:break-word; color:#c8d0dc; }
+.toolbar { display:grid; gap:8px; }
+.toolbar input { width:100%; background:#0e1117; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px; }
+.row { display:flex; gap:8px; flex-wrap:wrap; }
+.pill { display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px 8px; color:var(--muted); margin:2px 3px 2px 0; font-size:12px; }
+dialog { max-width:min(920px,92vw); background:#151a22; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:0; }
+dialog::backdrop { background:rgba(0,0,0,.65); }
+.dialog-head { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:12px 14px; border-bottom:1px solid var(--line); }
+.dialog-head h2 { margin:0; font-size:16px; }
+.dialog-body { padding:14px; max-height:72vh; overflow:auto; }
+pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1px solid var(--line); border-radius:6px; padding:12px; }
+.empty { color:var(--muted); text-align:center; padding:60px 20px; }
+@media (max-width:980px) { .layout { grid-template-columns:1fr; } aside { border-left:0; border-top:1px solid var(--line); } .image-wrap { min-height:300px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>CWIC AB Tester</h1>
+  <div class="top-actions">
+    <button id="exportKeep">Export keep.json</button>
+    <button id="exportDelete">Export delete.json</button>
+    <button id="exportState" class="primary">Export review_state.json</button>
+    <label><input id="importState" type="file" accept="application/json" hidden><button type="button" id="importStateButton">Import state</button></label>
+  </div>
+</header>
+<div class="layout">
+  <main>
+    <section class="card" id="card"></section>
+  </main>
+  <aside>
+    <div class="stat-grid">
+      <div class="stat"><span>Total</span><strong id="totalCount">0</strong></div>
+      <div class="stat"><span>Reviewed</span><strong id="reviewedCount">0</strong></div>
+      <div class="stat"><span>Keep</span><strong id="keepCount">0</strong></div>
+      <div class="stat"><span>Delete</span><strong id="deleteCount">0</strong></div>
+    </div>
+    <div class="progress"><div class="bar" id="progressBar"></div></div>
+    <div class="panel">
+      <h2>Controls</h2>
+      <div class="small">Left Arrow = keep. Right Arrow = delete. Backspace = undo. Decisions autosave to this browser immediately.</div>
+      <div class="status" id="saveStatus">Loading...</div>
+      <div class="status warning" id="exportStatus"></div>
+    </div>
+    <div class="panel toolbar">
+      <h2>Find</h2>
+      <input id="search" type="search" placeholder="Search path, sprite, gfx file">
+      <div class="row">
+        <button id="prevMatch">Previous match</button>
+        <button id="nextMatch">Next match</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Current Links</h2>
+      <div class="small">GFX files</div>
+      <ul class="list" id="gfxFiles"></ul>
+      <div class="small" style="margin-top:10px">Sprite names</div>
+      <div id="spriteNames"></div>
+      <div class="small" style="margin-top:10px">Usage files</div>
+      <ul class="list" id="usageFiles"></ul>
+    </div>
+    <div class="panel">
+      <h2>Session</h2>
+      <div class="row">
+        <button id="undo">Undo</button>
+        <button id="clearDecision">Clear current</button>
+        <button id="details">Details</button>
+      </div>
+      <div class="small" style="margin-top:8px">Dataset: 953074cc48b4b897</div>
+    </div>
+  </aside>
+</div>
+<dialog id="detailsDialog">
+  <div class="dialog-head"><h2>Icon Details</h2><button id="closeDetails">Close</button></div>
+  <div class="dialog-body"><pre id="detailsPre"></pre></div>
+</dialog>
+<script src="icons-data.js"></script>
+<script>
+const DATASET_HASH = "953074cc48b4b897";
+const STORAGE_KEY = `cwicGoalIconSwipeState:v1:${DATASET_HASH}`;
+let icons = [];
+let currentIndex = 0;
+let state = {
+  version: 1,
+  datasetHash: DATASET_HASH,
+  currentPath: null,
+  decisions: {},
+  history: [],
+  exportRevisions: {keep: 0, delete: 0, state: 0},
+  revision: 0,
+  lastExportedRevision: 0,
+  updatedAt: null
+};
+
+const el = id => document.getElementById(id);
+
+function nowIso() { return new Date().toISOString(); }
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.datasetHash === DATASET_HASH) state = {...state, ...parsed};
+  } catch (error) {
+    console.warn('Could not parse saved state', error);
+  }
+  state.exportRevisions = {keep: 0, delete: 0, state: state.lastExportedRevision || 0, ...(state.exportRevisions || {})};
+}
+
+function saveState() {
+  state.currentPath = icons[currentIndex]?.path || null;
+  state.updatedAt = nowIso();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  el('saveStatus').textContent = `Autosaved locally at ${new Date().toLocaleTimeString()}`;
+  updateExportStatus();
+}
+
+function decisionCounts() {
+  const values = Object.values(state.decisions).map(d => d.decision);
+  return {
+    reviewed: values.length,
+    keep: values.filter(v => v === 'keep').length,
+    delete: values.filter(v => v === 'delete').length
+  };
+}
+
+function updateStats() {
+  const counts = decisionCounts();
+  el('totalCount').textContent = icons.length;
+  el('reviewedCount').textContent = counts.reviewed;
+  el('keepCount').textContent = counts.keep;
+  el('deleteCount').textContent = counts.delete;
+  el('progressBar').style.width = icons.length ? `${(counts.reviewed / icons.length) * 100}%` : '0%';
+}
+
+function updateExportStatus() {
+  state.exportRevisions = {keep: 0, delete: 0, state: state.lastExportedRevision || 0, ...(state.exportRevisions || {})};
+  const behind = ['keep', 'delete', 'state'].filter(kind => (state.exportRevisions[kind] || 0) < state.revision);
+  el('exportStatus').textContent = behind.length
+    ? `Local autosave is current. JSON export(s) behind: ${behind.join(', ')}.`
+    : 'Exported state is current.';
+}
+
+function findIndexByPath(path) {
+  return icons.findIndex(icon => icon.path === path);
+}
+
+function nextUndecided(start) {
+  for (let offset = 1; offset <= icons.length; offset++) {
+    const idx = (start + offset) % icons.length;
+    if (!state.decisions[icons[idx].path]) return idx;
+  }
+  return start;
+}
+
+function currentIcon() { return icons[currentIndex]; }
+
+function renderList(target, values) {
+  target.innerHTML = '';
+  if (!values || values.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'none';
+    target.appendChild(li);
+    return;
+  }
+  for (const value of values) {
+    const li = document.createElement('li');
+    li.textContent = value;
+    target.appendChild(li);
+  }
+}
+
+function renderPills(target, values) {
+  target.innerHTML = '';
+  if (!values || values.length === 0) {
+    target.textContent = 'none';
+    target.className = 'small';
+    return;
+  }
+  target.className = '';
+  for (const value of values) {
+    const span = document.createElement('span');
+    span.className = 'pill';
+    span.textContent = value;
+    target.appendChild(span);
+  }
+}
+
+function render() {
+  updateStats();
+  if (!icons.length) {
+    el('card').innerHTML = '<div class="empty">No icons loaded.</div>';
+    return;
+  }
+  const icon = currentIcon();
+  const decision = state.decisions[icon.path]?.decision || null;
+  const add = icon.first_git_add || {};
+  const author = add.author?.name || 'unknown author';
+  el('card').innerHTML = `
+    <div class="image-wrap"><img src="${escapeHtml(icon.thumbnail)}" alt=""></div>
+    <div class="decision-row">
+      <button class="keep" id="keepButton">Keep <span class="small">(Left)</span></button>
+      <button class="delete" id="deleteButton">Delete <span class="small">(Right)</span></button>
+    </div>
+    <div class="meta">
+      <div class="path">${escapeHtml(icon.path)}</div>
+      <div class="bottom-age">
+        <span><strong>${currentIndex + 1}</strong> / ${icons.length}</span>
+        <span>Decision: <strong>${decision || 'unreviewed'}</strong></span>
+        <span>Added: <strong>${escapeHtml(add.date || 'unknown')}</strong></span>
+        <span><strong>${escapeHtml(add.age_label || 'unknown age')}</strong></span>
+        <span>By <strong>${escapeHtml(author)}</strong></span>
+      </div>
+    </div>`;
+  el('keepButton').addEventListener('click', () => decide('keep'));
+  el('deleteButton').addEventListener('click', () => decide('delete'));
+  renderList(el('gfxFiles'), icon.gfx.files);
+  renderPills(el('spriteNames'), icon.gfx.sprite_names);
+  renderList(el('usageFiles'), icon.gfx.usage_files);
+  updateExportStatus();
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function decide(decision) {
+  const icon = currentIcon();
+  state.decisions[icon.path] = {
+    decision,
+    decidedAt: nowIso(),
+    icon
+  };
+  state.history.push({path: icon.path, decision, decidedAt: nowIso(), index: currentIndex});
+  state.revision++;
+  currentIndex = nextUndecided(currentIndex);
+  saveState();
+  render();
+}
+
+function undo() {
+  const last = state.history.pop();
+  if (!last) return;
+  delete state.decisions[last.path];
+  const idx = findIndexByPath(last.path);
+  if (idx >= 0) currentIndex = idx;
+  state.revision++;
+  saveState();
+  render();
+}
+
+function clearCurrentDecision() {
+  const icon = currentIcon();
+  if (!state.decisions[icon.path]) return;
+  delete state.decisions[icon.path];
+  state.history.push({path: icon.path, decision: 'clear', decidedAt: nowIso(), index: currentIndex});
+  state.revision++;
+  saveState();
+  render();
+}
+
+function exportRecords(decision) {
+  return Object.values(state.decisions)
+    .filter(entry => entry.decision === decision)
+    .map(entry => ({
+      decision: entry.decision,
+      decidedAt: entry.decidedAt,
+      path: entry.icon.path,
+      file_name: entry.icon.file_name,
+      stem: entry.icon.stem,
+      game_path: entry.icon.game_path,
+      thumbnail: entry.icon.thumbnail,
+      first_git_add: entry.icon.first_git_add,
+      gfx: entry.icon.gfx
+    }));
+}
+
+function downloadJson(fileName, payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2) + '\n'], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function setExported(kind) {
+  state.exportRevisions = {keep: 0, delete: 0, state: state.lastExportedRevision || 0, ...(state.exportRevisions || {})};
+  state.exportRevisions[kind] = state.revision;
+  if (kind === 'state') state.lastExportedRevision = state.revision;
+}
+
+function markExported(kind) {
+  setExported(kind);
+  saveState();
+  render();
+}
+
+function exportKeep() {
+  downloadJson('goal_icon_keep.json', {generatedAt: nowIso(), datasetHash: DATASET_HASH, count: exportRecords('keep').length, items: exportRecords('keep')});
+  markExported('keep');
+}
+
+function exportDelete() {
+  downloadJson('goal_icon_delete.json', {generatedAt: nowIso(), datasetHash: DATASET_HASH, count: exportRecords('delete').length, items: exportRecords('delete')});
+  markExported('delete');
+}
+
+function exportState() {
+  setExported('state');
+  downloadJson('goal_icon_review_state.json', state);
+  saveState();
+  render();
+}
+
+function matchIcon(icon, query) {
+  if (!query) return true;
+  const haystack = [
+    icon.path,
+    icon.file_name,
+    icon.extension,
+    icon.first_git_add?.date || '',
+    ...(icon.gfx.files || []),
+    ...(icon.gfx.sprite_names || []),
+    ...(icon.gfx.usage_files || [])
+  ].join(' ').toLowerCase();
+  return haystack.includes(query);
+}
+
+function jumpMatch(direction) {
+  const query = el('search').value.trim().toLowerCase();
+  if (!query) return;
+  for (let offset = 1; offset <= icons.length; offset++) {
+    const idx = (currentIndex + direction * offset + icons.length) % icons.length;
+    if (matchIcon(icons[idx], query)) {
+      currentIndex = idx;
+      saveState();
+      render();
+      return;
+    }
+  }
+}
+
+async function importState(file) {
+  const text = await file.text();
+  const imported = JSON.parse(text);
+  if (!imported || typeof imported !== 'object') throw new Error('Invalid state file');
+  if (imported.datasetHash && imported.datasetHash !== DATASET_HASH) {
+    if (!confirm('This state was made for a different dataset. Import anyway?')) return;
+  }
+  state = {...state, ...imported, datasetHash: DATASET_HASH};
+  const idx = findIndexByPath(state.currentPath);
+  currentIndex = idx >= 0 ? idx : 0;
+  saveState();
+  render();
+}
+
+function showDetails() {
+  el('detailsPre').textContent = JSON.stringify(currentIcon(), null, 2);
+  el('detailsDialog').showModal();
+}
+
+window.addEventListener('beforeunload', event => {
+  const exported = {keep: 0, delete: 0, state: state.lastExportedRevision || 0, ...(state.exportRevisions || {})};
+  const hasPendingExports = ['keep', 'delete', 'state'].some(kind => (exported[kind] || 0) < state.revision);
+  if (hasPendingExports) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
+
+document.addEventListener('keydown', event => {
+  if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+  if (event.key === 'ArrowLeft') { event.preventDefault(); decide('keep'); }
+  if (event.key === 'ArrowRight') { event.preventDefault(); decide('delete'); }
+  if (event.key === 'Backspace') { event.preventDefault(); undo(); }
+});
+
+el('exportKeep').addEventListener('click', exportKeep);
+el('exportDelete').addEventListener('click', exportDelete);
+el('exportState').addEventListener('click', exportState);
+el('undo').addEventListener('click', undo);
+el('clearDecision').addEventListener('click', clearCurrentDecision);
+el('details').addEventListener('click', showDetails);
+el('closeDetails').addEventListener('click', () => el('detailsDialog').close());
+el('nextMatch').addEventListener('click', () => jumpMatch(1));
+el('prevMatch').addEventListener('click', () => jumpMatch(-1));
+el('importStateButton').addEventListener('click', () => el('importState').click());
+el('importState').addEventListener('change', event => {
+  const file = event.target.files?.[0];
+  if (file) importState(file).catch(error => alert(error.message));
+});
+
+try {
+  const data = window.CWIC_GOAL_ICONS_DATA || {};
+  icons = data.icons || [];
+  loadState();
+  const idx = findIndexByPath(state.currentPath);
+  currentIndex = idx >= 0 ? idx : 0;
+  render();
+} catch (error) {
+  el('card').innerHTML = `<div class="empty">Failed to load icons-data.js: ${escapeHtml(error.message)}</div>`;
+}
+</script>
+</body>
+</html>
