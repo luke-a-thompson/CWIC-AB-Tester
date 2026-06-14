@@ -1,0 +1,6 @@
+[
+  {
+    "path": "Cold War Iron Curtain/gfx/leaders/FIN/Urho_Kekkonen_60s.dds",
+    "error": "[dds @ 0x59f115775400] Unsupported DXGI format 99.\n[dds @ 0x59f115777440] Unsupported DXGI format 99.\nError while decoding stream #0:0: Invalid data found when processing input"
+  }
+]
