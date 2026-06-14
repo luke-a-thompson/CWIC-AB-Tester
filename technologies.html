@@ -149,6 +149,7 @@ pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1p
       <div class="row">
         <button id="undo">Undo</button>
         <button id="clearDecision">Clear current</button>
+        <button id="resetState">Reset state</button>
         <button id="details">Details</button>
       </div>
       <div class="small" style="margin-top:8px">Dataset: Technologies / 2b836dd3bffe68cc</div>
@@ -169,19 +170,24 @@ const LEGACY_STORAGE_KEY = `cwicGoalIconSwipeState:v1:${DATASET_HASH}`;
 let baseIcons = [];
 let icons = [];
 let currentIndex = 0;
-let state = {
-  version: 1,
-  datasetHash: DATASET_HASH,
-  currentPath: null,
-  randomizeOrder: true,
-  randomSeed: null,
-  decisions: {},
-  history: [],
-  exportRevisions: {keep: 0, delete: 0, state: 0},
-  revision: 0,
-  lastExportedRevision: 0,
-  updatedAt: null
-};
+
+function createFreshState() {
+  return {
+    version: 1,
+    datasetHash: DATASET_HASH,
+    currentPath: null,
+    randomizeOrder: true,
+    randomSeed: null,
+    decisions: {},
+    history: [],
+    exportRevisions: {keep: 0, delete: 0, state: 0},
+    revision: 0,
+    lastExportedRevision: 0,
+    updatedAt: null
+  };
+}
+
+let state = createFreshState();
 
 const el = id => document.getElementById(id);
 
@@ -562,6 +568,20 @@ function clearCurrentDecision() {
   render();
 }
 
+function resetReviewState() {
+  const counts = decisionCounts();
+  const message = `Reset local state for ${DATASET_LABEL}? This clears ${counts.reviewed} decision(s), imported review data, history, and export status from this browser.`;
+  if (!confirm(message)) return;
+  localStorage.removeItem(STORAGE_KEY);
+  if (EXPORT_PREFIX === 'goal_icon') localStorage.removeItem(LEGACY_STORAGE_KEY);
+  state = createFreshState();
+  ensureOrderState();
+  icons = state.randomizeOrder ? shuffledIcons() : baseIcons.slice();
+  currentIndex = 0;
+  saveState();
+  setView('review');
+}
+
 function exportRecords(decision) {
   return Object.values(state.decisions)
     .filter(entry => entry.decision === decision)
@@ -696,6 +716,7 @@ el('exportState').addEventListener('click', exportState);
 el('randomizeOrder').addEventListener('change', event => setRandomizeOrder(event.target.checked));
 el('undo').addEventListener('click', undo);
 el('clearDecision').addEventListener('click', clearCurrentDecision);
+el('resetState').addEventListener('click', resetReviewState);
 el('details').addEventListener('click', showDetails);
 el('closeDetails').addEventListener('click', () => el('detailsDialog').close());
 el('nextMatch').addEventListener('click', () => jumpMatch(1));
