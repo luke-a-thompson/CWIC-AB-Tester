@@ -33,6 +33,7 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 .view-tab.active { color:var(--text); border-color:#397184; background:#18333d; }
 .layout { display:grid; grid-template-columns:minmax(0,1fr) 340px; min-height:0; height:100%; overflow:hidden; }
 main { display:grid; place-items:center; min-height:0; overflow:auto; padding:18px; }
+main.overview-mode { place-items:start center; align-content:start; }
 .card { width:min(760px,100%); background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
 .card:not(.gallery-card) { height:min(640px,100%); display:grid; grid-template-rows:minmax(300px,420px) auto minmax(0,1fr); }
 .image-wrap { display:grid; place-items:center; min-height:420px; padding:24px; background-color:#0c0f14; background-image:url("cwic_ab_preview_bg.png"); background-repeat:repeat; background-size:317px 317px; background-position:center; }
@@ -463,6 +464,7 @@ function render() {
     renderOverview(view);
     return;
   }
+  el('card').parentElement.classList.remove('overview-mode');
   el('card').className = 'card';
   if (!icons.length) {
     el('card').innerHTML = '<div class="empty">No icons loaded.</div>';
@@ -509,6 +511,7 @@ function renderOverview(view) {
     .sort((a, b) => (b.decidedAt || '').localeCompare(a.decidedAt || ''));
 
   el('card').className = 'card gallery-card';
+  el('card').parentElement.classList.add('overview-mode');
   renderList(el('gfxFiles'), []);
   renderPills(el('spriteNames'), []);
   renderList(el('usageFiles'), []);
