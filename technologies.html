@@ -171,9 +171,11 @@ const DATASET_LABEL = "Technologies";
 const EXPORT_PREFIX = "technology";
 const STORAGE_KEY = `cwicABTesterSwipeState:v2:${EXPORT_PREFIX}:${DATASET_HASH}`;
 const LEGACY_STORAGE_KEY = `cwicGoalIconSwipeState:v1:${DATASET_HASH}`;
+const PRELOAD_AHEAD_COUNT = 4;
 let baseIcons = [];
 let icons = [];
 let currentIndex = 0;
+const thumbnailPreloadCache = new Set();
 
 function createFreshState() {
   return {
@@ -337,6 +339,37 @@ function nextUndecided(start) {
 
 function currentIcon() { return icons[currentIndex]; }
 
+function preloadThumbnail(src) {
+  if (!src || thumbnailPreloadCache.has(src)) return;
+  thumbnailPreloadCache.add(src);
+  const image = new Image();
+  image.decoding = 'async';
+  image.loading = 'eager';
+  image.src = src;
+  if (image.decode) image.decode().catch(() => {});
+}
+
+function nextUndecidedAfter(start, skipped) {
+  for (let offset = 1; offset <= icons.length; offset++) {
+    const idx = (start + offset) % icons.length;
+    if (!skipped.has(idx) && !state.decisions[icons[idx].path]) return idx;
+  }
+  return -1;
+}
+
+function preloadUpcomingThumbnails() {
+  if (!icons.length) return;
+  preloadThumbnail(currentIcon()?.thumbnail);
+  let idx = currentIndex;
+  const skipped = new Set([currentIndex]);
+  for (let count = 0; count < PRELOAD_AHEAD_COUNT; count++) {
+    idx = nextUndecidedAfter(idx, skipped);
+    if (idx < 0) break;
+    skipped.add(idx);
+    preloadThumbnail(icons[idx]?.thumbnail);
+  }
+}
+
 function currentView() {
   const view = new URLSearchParams(window.location.search).get('view');
   return ['kept', 'deleted'].includes(view) ? view : 'review';
@@ -436,11 +469,12 @@ function render() {
     return;
   }
   const icon = currentIcon();
+  preloadUpcomingThumbnails();
   const decision = state.decisions[icon.path]?.decision || null;
   const add = icon.first_git_add || {};
   const author = add.author?.name || 'unknown author';
   el('card').innerHTML = `
-    <div class="image-wrap"><img src="${escapeHtml(icon.thumbnail)}" alt=""></div>
+    <div class="image-wrap"><img src="${escapeHtml(icon.thumbnail)}" alt="" loading="eager" decoding="async" fetchpriority="high"></div>
     <div class="decision-row">
       <button class="keep" id="keepButton">Keep <span class="small">(Left)</span></button>
       <button class="delete" id="deleteButton">Delete <span class="small">(Right)</span></button>
