@@ -76,11 +76,11 @@
     "error": "Output file #0 does not contain any stream"
   },
   {
-    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Socialist_Party.tga",
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Sri_Lanka_Agreement.tga",
     "error": "Output file #0 does not contain any stream"
   },
   {
-    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Sri_Lanka_Agreement.tga",
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Indian_Socialist_Party.tga",
     "error": "Output file #0 does not contain any stream"
   },
   {
@@ -93,15 +93,15 @@
   },
   {
     "path": "Cold War Iron Curtain/gfx/interface/goals/Kenya_Navy.dds",
-    "error": "[dds @ 0x576b4822b480] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x576b4822d480] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
-  },
-  {
-    "path": "Cold War Iron Curtain/gfx/interface/goals/Kenyan_Armed_Forces.dds",
-    "error": "[dds @ 0x62a204896400] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x62a204898440] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
+    "error": "[dds @ 0x6456698dd480] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x6456698df480] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
   },
   {
     "path": "Cold War Iron Curtain/gfx/interface/goals/Kenyan_Army.dds",
-    "error": "[dds @ 0x575ec6fe0480] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x575ec6fe2480] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
+    "error": "[dds @ 0x5cf63c254480] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x5cf63c256480] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
+  },
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/goals/Kenyan_Armed_Forces.dds",
+    "error": "[dds @ 0x6284a79ce400] Unsupported [63][0][0][0] fourcc.\n[dds @ 0x6284a79d0440] Unsupported [63][0][0][0] fourcc.\nError while decoding stream #0:0: Invalid data found when processing input"
   },
   {
     "path": "Cold War Iron Curtain/gfx/interface/goals/Maoism_Ideology.tga",
@@ -157,7 +157,7 @@
   },
   {
     "path": "Cold War Iron Curtain/gfx/interface/goals/Soviet_Relations.dds",
-    "error": "[dds @ 0x56bb034e6400] Invalid DDS header.\n[dds @ 0x56bb034f3680] Invalid DDS header.\nError while decoding stream #0:0: Invalid data found when processing input\nCannot determine format of input stream 0:0 after EOF\nError marking filters as finished"
+    "error": "[dds @ 0x5d53dc85f400] Invalid DDS header.\n[dds @ 0x5d53dc86c680] Invalid DDS header.\nError while decoding stream #0:0: Invalid data found when processing input\nCannot determine format of input stream 0:0 after EOF\nError marking filters as finished"
   },
   {
     "path": "Cold War Iron Curtain/gfx/interface/goals/Spain_Air_Force.tga",
@@ -188,11 +188,11 @@
     "error": "Output file #0 does not contain any stream"
   },
   {
-    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_marines.tga",
+    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_army.tga",
     "error": "Output file #0 does not contain any stream"
   },
   {
-    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_army.tga",
+    "path": "Cold War Iron Curtain/gfx/interface/goals/USA_marines.tga",
     "error": "Output file #0 does not contain any stream"
   },
   {

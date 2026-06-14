@@ -190,6 +190,34 @@ function applyOrder(pathToKeep = null) {
   currentIndex = idx >= 0 ? idx : 0;
 }
 
+function sanitizeIcon(icon) {
+  if (!icon) return icon;
+  const firstGitAdd = icon.first_git_add ? {...icon.first_git_add} : icon.first_git_add;
+  if (firstGitAdd?.author) firstGitAdd.author = {name: firstGitAdd.author.name || null};
+  return {...icon, first_git_add: firstGitAdd};
+}
+
+function sanitizeDecisionEntry(entry) {
+  if (!entry || typeof entry !== 'object') return entry;
+  return {...entry, icon: sanitizeIcon(entry.icon)};
+}
+
+function sanitizeState() {
+  const decisions = {};
+  for (const [path, entry] of Object.entries(state.decisions || {})) {
+    decisions[path] = sanitizeDecisionEntry(entry);
+  }
+  state.decisions = decisions;
+}
+
+function sanitizedStateForExport() {
+  const decisions = {};
+  for (const [path, entry] of Object.entries(state.decisions || {})) {
+    decisions[path] = sanitizeDecisionEntry(entry);
+  }
+  return {...state, decisions};
+}
+
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
@@ -204,9 +232,11 @@ function loadState() {
   }
   state.exportRevisions = {keep: 0, delete: 0, state: state.lastExportedRevision || 0, ...(state.exportRevisions || {})};
   ensureOrderState();
+  sanitizeState();
 }
 
 function saveState() {
+  sanitizeState();
   state.currentPath = icons[currentIndex]?.path || null;
   state.updatedAt = nowIso();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -373,17 +403,20 @@ function clearCurrentDecision() {
 function exportRecords(decision) {
   return Object.values(state.decisions)
     .filter(entry => entry.decision === decision)
-    .map(entry => ({
-      decision: entry.decision,
-      decidedAt: entry.decidedAt,
-      path: entry.icon.path,
-      file_name: entry.icon.file_name,
-      stem: entry.icon.stem,
-      game_path: entry.icon.game_path,
-      thumbnail: entry.icon.thumbnail,
-      first_git_add: entry.icon.first_git_add,
-      gfx: entry.icon.gfx
-    }));
+    .map(entry => {
+      const icon = sanitizeIcon(entry.icon);
+      return {
+        decision: entry.decision,
+        decidedAt: entry.decidedAt,
+        path: icon.path,
+        file_name: icon.file_name,
+        stem: icon.stem,
+        game_path: icon.game_path,
+        thumbnail: icon.thumbnail,
+        first_git_add: icon.first_git_add,
+        gfx: icon.gfx
+      };
+    });
 }
 
 function downloadJson(fileName, payload) {
@@ -422,7 +455,8 @@ function exportDelete() {
 
 function exportState() {
   setExported('state');
-  downloadJson('goal_icon_review_state.json', state);
+  sanitizeState();
+  downloadJson('goal_icon_review_state.json', sanitizedStateForExport());
   saveState();
   render();
 }
@@ -464,6 +498,7 @@ async function importState(file) {
   }
   state = {...state, ...imported, datasetHash: DATASET_HASH};
   ensureOrderState();
+  sanitizeState();
   applyOrder(state.currentPath);
   saveState();
   render();
