@@ -22,6 +22,7 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 .tab { display:inline-flex; align-items:center; min-height:34px; padding:7px 11px; border:1px solid var(--line); border-radius:6px; color:var(--muted); text-decoration:none; background:#171d25; }
 .tab:hover { border-color:var(--accent); color:var(--text); }
 .tab.active { color:var(--text); border-color:#397184; background:#18333d; }
+.tab.view-tab { border-style:dashed; }
 .top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 .layout { display:grid; grid-template-columns:minmax(0,1fr) 340px; min-height:calc(100vh - 62px); }
 main { display:grid; place-items:center; padding:18px; }
@@ -61,6 +62,18 @@ dialog::backdrop { background:rgba(0,0,0,.65); }
 .dialog-body { padding:14px; max-height:72vh; overflow:auto; }
 pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1px solid var(--line); border-radius:6px; padding:12px; }
 .empty { color:var(--muted); text-align:center; padding:60px 20px; }
+.gallery-card { width:min(1160px,100%); }
+.gallery-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px; border-bottom:1px solid var(--line); }
+.gallery-head h2 { margin:0; font-size:16px; }
+.gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; padding:14px; }
+.gallery-item { min-width:0; border:1px solid var(--line); border-radius:7px; overflow:hidden; background:#11161d; }
+.gallery-thumb { display:grid; place-items:center; aspect-ratio:1; background-color:#0c0f14; background-image:url("cwic_ab_preview_bg.png"); background-repeat:repeat; background-size:317px 317px; background-position:center; }
+.gallery-thumb img { max-width:100%; max-height:100%; object-fit:contain; }
+.gallery-info { padding:9px; display:grid; gap:5px; }
+.gallery-title { font-size:12px; font-weight:650; word-break:break-word; }
+.gallery-path { font-size:11px; color:var(--muted); word-break:break-word; max-height:46px; overflow:auto; }
+.gallery-actions { display:flex; gap:6px; flex-wrap:wrap; padding:0 9px 9px; }
+.gallery-actions button { padding:5px 7px; font-size:12px; }
 @media (max-width:980px) { header { align-items:flex-start; flex-direction:column; } .top-actions { justify-content:flex-start; } .layout { grid-template-columns:1fr; } aside { border-left:0; border-top:1px solid var(--line); } .image-wrap { min-height:300px; } }
 </style>
 </head>
@@ -71,6 +84,9 @@ pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1p
     <nav class="tabs" aria-label="Asset tabs">
     <a class="tab" href="index.html">Goal Icons</a>
     <a class="tab active" href="portraits.html">Portraits</a>
+    <a class="tab" href="technologies.html">Technologies</a>
+    <a class="tab view-tab" data-view-tab="kept" href="portraits.html?view=kept">Kept</a>
+    <a class="tab view-tab" data-view-tab="deleted" href="portraits.html?view=deleted">Deleted</a>
     </nav>
   </div>
   <div class="top-actions">
@@ -298,6 +314,59 @@ function nextUndecided(start) {
 
 function currentIcon() { return icons[currentIndex]; }
 
+function currentView() {
+  const view = new URLSearchParams(window.location.search).get('view');
+  return ['kept', 'deleted'].includes(view) ? view : 'review';
+}
+
+function setView(view) {
+  const url = new URL(window.location.href);
+  if (view === 'review') url.searchParams.delete('view');
+  else url.searchParams.set('view', view);
+  window.history.pushState({}, '', url);
+  render();
+}
+
+function updateViewTabs(view) {
+  document.querySelectorAll('[data-view-tab]').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.viewTab === view);
+  });
+}
+
+function findIconByPath(path) {
+  return baseIcons.find(icon => icon.path === path);
+}
+
+function showReviewForPath(path) {
+  const idx = findIndexByPath(path);
+  if (idx >= 0) currentIndex = idx;
+  saveState();
+  setView('review');
+}
+
+function setDecisionForPath(path, decision) {
+  const icon = sanitizeIcon(findIconByPath(path) || state.decisions[path]?.icon);
+  if (!icon) return;
+  state.decisions[path] = {
+    decision,
+    decidedAt: nowIso(),
+    icon
+  };
+  state.history.push({path, decision, decidedAt: nowIso(), index: findIndexByPath(path)});
+  state.revision++;
+  saveState();
+  render();
+}
+
+function clearDecisionForPath(path) {
+  if (!state.decisions[path]) return;
+  delete state.decisions[path];
+  state.history.push({path, decision: 'clear', decidedAt: nowIso(), index: findIndexByPath(path)});
+  state.revision++;
+  saveState();
+  render();
+}
+
 function renderList(target, values) {
   target.innerHTML = '';
   if (!values || values.length === 0) {
@@ -331,7 +400,14 @@ function renderPills(target, values) {
 
 function render() {
   updateStats();
+  const view = currentView();
+  updateViewTabs(view);
   el('randomizeOrder').checked = Boolean(state.randomizeOrder);
+  if (view === 'kept' || view === 'deleted') {
+    renderOverview(view);
+    return;
+  }
+  el('card').className = 'card';
   if (!icons.length) {
     el('card').innerHTML = '<div class="empty">No icons loaded.</div>';
     return;
@@ -361,6 +437,64 @@ function render() {
   renderList(el('gfxFiles'), icon.gfx.files);
   renderPills(el('spriteNames'), icon.gfx.sprite_names);
   renderList(el('usageFiles'), icon.gfx.usage_files);
+  updateExportStatus();
+}
+
+function renderOverview(view) {
+  const decision = view === 'kept' ? 'keep' : 'delete';
+  const title = view === 'kept' ? 'Kept' : 'Deleted';
+  const alternateDecision = decision === 'keep' ? 'delete' : 'keep';
+  const alternateLabel = decision === 'keep' ? 'Delete' : 'Keep';
+  const entries = Object.values(state.decisions || {})
+    .filter(entry => entry.decision === decision && entry.icon)
+    .map(sanitizeDecisionEntry)
+    .sort((a, b) => (b.decidedAt || '').localeCompare(a.decidedAt || ''));
+
+  el('card').className = 'card gallery-card';
+  renderList(el('gfxFiles'), []);
+  renderPills(el('spriteNames'), []);
+  renderList(el('usageFiles'), []);
+
+  if (!entries.length) {
+    el('card').innerHTML = `<div class="gallery-head"><h2>${title}</h2><span class="small">0 items</span></div><div class="empty">No ${title.toLowerCase()} items yet.</div>`;
+    updateExportStatus();
+    return;
+  }
+
+  el('card').innerHTML = `
+    <div class="gallery-head">
+      <h2>${title}</h2>
+      <span class="small">${entries.length} item(s)</span>
+    </div>
+    <div class="gallery-grid">
+      ${entries.map(entry => {
+        const icon = sanitizeIcon(entry.icon);
+        const add = icon.first_git_add || {};
+        return `
+          <article class="gallery-item">
+            <div class="gallery-thumb"><img src="${escapeHtml(icon.thumbnail)}" alt=""></div>
+            <div class="gallery-info">
+              <div class="gallery-title">${escapeHtml(icon.file_name || icon.path)}</div>
+              <div class="gallery-path">${escapeHtml(icon.path)}</div>
+              <div class="small">${escapeHtml(add.age_label || 'unknown age')}</div>
+            </div>
+            <div class="gallery-actions">
+              <button type="button" data-action="review" data-path="${escapeHtml(icon.path)}">Review</button>
+              <button type="button" data-action="switch" data-path="${escapeHtml(icon.path)}">${alternateLabel}</button>
+              <button type="button" data-action="clear" data-path="${escapeHtml(icon.path)}">Clear</button>
+            </div>
+          </article>`;
+      }).join('')}
+    </div>`;
+
+  el('card').querySelectorAll('[data-action]').forEach(button => {
+    button.addEventListener('click', () => {
+      const path = button.dataset.path;
+      if (button.dataset.action === 'review') showReviewForPath(path);
+      if (button.dataset.action === 'switch') setDecisionForPath(path, alternateDecision);
+      if (button.dataset.action === 'clear') clearDecisionForPath(path);
+    });
+  });
   updateExportStatus();
 }
 
@@ -534,10 +668,13 @@ window.addEventListener('beforeunload', event => {
 
 document.addEventListener('keydown', event => {
   if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+  if (currentView() !== 'review') return;
   if (event.key === 'ArrowLeft') { event.preventDefault(); decide('keep'); }
   if (event.key === 'ArrowRight') { event.preventDefault(); decide('delete'); }
   if (event.key === 'Backspace') { event.preventDefault(); undo(); }
 });
+
+window.addEventListener('popstate', render);
 
 el('exportKeep').addEventListener('click', exportKeep);
 el('exportDelete').addEventListener('click', exportDelete);

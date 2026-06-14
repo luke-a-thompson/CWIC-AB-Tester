@@ -1,0 +1,6 @@
+[
+  {
+    "path": "Cold War Iron Curtain/gfx/interface/technologies/EGY_ground.dds",
+    "error": "[dds @ 0x5ab4e868c400] Unsupported DXGI format 98.\n[dds @ 0x5ab4e8691500] Unsupported DXGI format 98.\nError while decoding stream #0:0: Invalid data found when processing input"
+  }
+]
