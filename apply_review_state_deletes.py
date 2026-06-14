@@ -9,11 +9,11 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
 
 DEFAULT_MOD_ROOT = Path("Cold War Iron Curtain")
 DEFAULT_UNKNOWN_GOAL = "gfx/interface/goals/goal_unknown.dds"
@@ -34,14 +34,45 @@ class DeleteItem:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("review_state", type=Path, help="*_review_state.json or *_delete.json from the review app")
-    parser.add_argument("--repo-root", type=Path, help="Repository root. Auto-detected by default.")
-    parser.add_argument("--mod-root", type=Path, default=DEFAULT_MOD_ROOT, help="Mod root relative to repo root.")
-    parser.add_argument("--replacement", default=DEFAULT_UNKNOWN_GOAL, help="Texture path to use in .gfx files.")
-    parser.add_argument("--audit-out", type=Path, help="Audit JSON path. Defaults beside the input file.")
-    parser.add_argument("--allow-non-goal-paths", action="store_true", help="Allow deleting assets outside gfx/interface/goals/.")
-    parser.add_argument("--skip-sprite-usage-scan", action="store_true", help="Do not scan text files for sprite name usage.")
-    parser.add_argument("--apply", action="store_true", help="Actually edit .gfx files and delete files.")
+    parser.add_argument(
+        "review_state",
+        type=Path,
+        help="*_review_state.json or *_delete.json from the review app",
+    )
+    parser.add_argument(
+        "--repo-root", type=Path, help="Repository root. Auto-detected by default."
+    )
+    parser.add_argument(
+        "--mod-root",
+        type=Path,
+        default=DEFAULT_MOD_ROOT,
+        help="Mod root relative to repo root.",
+    )
+    parser.add_argument(
+        "--replacement",
+        default=DEFAULT_UNKNOWN_GOAL,
+        help="Texture path to use in .gfx files.",
+    )
+    parser.add_argument(
+        "--audit-out",
+        type=Path,
+        help="Audit JSON path. Defaults beside the input file.",
+    )
+    parser.add_argument(
+        "--allow-non-goal-paths",
+        action="store_true",
+        help="Allow deleting assets outside gfx/interface/goals/.",
+    )
+    parser.add_argument(
+        "--skip-sprite-usage-scan",
+        action="store_true",
+        help="Do not scan text files for sprite name usage.",
+    )
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Actually edit .gfx files and delete files.",
+    )
     return parser.parse_args()
 
 
@@ -99,7 +130,9 @@ def audit_path_for(input_path: Path) -> Path:
     return input_path.with_name(f"{input_path.stem}_delete_audit.json")
 
 
-def load_deleted_items(state_path: Path, repo_root: Path, mod_root: Path) -> tuple[list[DeleteItem], list[dict[str, Any]]]:
+def load_deleted_items(
+    state_path: Path, repo_root: Path, mod_root: Path
+) -> tuple[list[DeleteItem], list[dict[str, Any]]]:
     payload = json.loads(state_path.read_text(encoding="utf-8"))
     raw_entries: list[dict[str, Any]] = []
 
@@ -107,13 +140,19 @@ def load_deleted_items(state_path: Path, repo_root: Path, mod_root: Path) -> tup
         for state_key, entry in payload["decisions"].items():
             if isinstance(entry, dict) and entry.get("decision") == "delete":
                 icon = entry.get("icon") if isinstance(entry.get("icon"), dict) else {}
-                raw_entries.append({"state_key": state_key, "entry": entry, "icon": icon})
+                raw_entries.append(
+                    {"state_key": state_key, "entry": entry, "icon": icon}
+                )
     elif isinstance(payload, dict) and isinstance(payload.get("items"), list):
         for entry in payload["items"]:
             if isinstance(entry, dict) and entry.get("decision") in (None, "delete"):
-                raw_entries.append({"state_key": entry.get("path"), "entry": entry, "icon": entry})
+                raw_entries.append(
+                    {"state_key": entry.get("path"), "entry": entry, "icon": entry}
+                )
     else:
-        raise ValueError("Input must be a review_state.json with decisions or a delete export with items.")
+        raise ValueError(
+            "Input must be a review_state.json with decisions or a delete export with items."
+        )
 
     items: list[DeleteItem] = []
     skipped: list[dict[str, Any]] = []
@@ -123,27 +162,44 @@ def load_deleted_items(state_path: Path, repo_root: Path, mod_root: Path) -> tup
         icon = raw["icon"]
         game_path = derive_game_path(icon, mod_root)
         if not game_path:
-            skipped.append({"state_key": raw.get("state_key"), "reason": "could_not_derive_game_path"})
+            skipped.append(
+                {
+                    "state_key": raw.get("state_key"),
+                    "reason": "could_not_derive_game_path",
+                }
+            )
             continue
 
         key = normalize_game_path(game_path)
         if key in seen:
-            skipped.append({"game_path": game_path, "reason": "duplicate_delete_decision"})
+            skipped.append(
+                {"game_path": game_path, "reason": "duplicate_delete_decision"}
+            )
             continue
         seen.add(key)
 
         gfx = icon.get("gfx") if isinstance(icon.get("gfx"), dict) else {}
-        sprite_names = [name for name in gfx.get("sprite_names", []) if isinstance(name, str)]
-        usage_files = [name for name in gfx.get("usage_files", []) if isinstance(name, str)]
+        sprite_names = [
+            name for name in gfx.get("sprite_names", []) if isinstance(name, str)
+        ]
+        usage_files = [
+            name for name in gfx.get("usage_files", []) if isinstance(name, str)
+        ]
         items.append(
             DeleteItem(
                 game_path=game_path,
                 file_path=mod_root / game_path,
-                state_path=icon.get("path") if isinstance(icon.get("path"), str) else raw.get("state_key"),
-                file_name=icon.get("file_name") if isinstance(icon.get("file_name"), str) else Path(game_path).name,
+                state_path=icon.get("path")
+                if isinstance(icon.get("path"), str)
+                else raw.get("state_key"),
+                file_name=icon.get("file_name")
+                if isinstance(icon.get("file_name"), str)
+                else Path(game_path).name,
                 sprite_names=sprite_names,
                 state_usage_files=usage_files,
-                decided_at=entry.get("decidedAt") if isinstance(entry.get("decidedAt"), str) else None,
+                decided_at=entry.get("decidedAt")
+                if isinstance(entry.get("decidedAt"), str)
+                else None,
             )
         )
 
@@ -165,15 +221,21 @@ def text_files(mod_root: Path) -> list[Path]:
 def count_case_insensitive(haystack: bytes, needle: str) -> int:
     if not needle:
         return 0
-    return len(re.findall(re.escape(needle.encode("utf-8")), haystack, flags=re.IGNORECASE))
+    return len(
+        re.findall(re.escape(needle.encode("utf-8")), haystack, flags=re.IGNORECASE)
+    )
 
 
-def replace_case_insensitive(haystack: bytes, needle: str, replacement: str) -> tuple[bytes, int]:
+def replace_case_insensitive(
+    haystack: bytes, needle: str, replacement: str
+) -> tuple[bytes, int]:
     pattern = re.compile(re.escape(needle.encode("utf-8")), flags=re.IGNORECASE)
     return pattern.subn(replacement.encode("utf-8"), haystack)
 
 
-def find_gfx_references(items: list[DeleteItem], mod_root: Path) -> dict[str, list[dict[str, Any]]]:
+def find_gfx_references(
+    items: list[DeleteItem], mod_root: Path
+) -> dict[str, list[dict[str, Any]]]:
     references: dict[str, list[dict[str, Any]]] = {item.game_path: [] for item in items}
     for gfx_path in gfx_files(mod_root):
         data = gfx_path.read_bytes()
@@ -186,8 +248,13 @@ def find_gfx_references(items: list[DeleteItem], mod_root: Path) -> dict[str, li
 
 
 def scan_sprite_usages(items: list[DeleteItem], mod_root: Path) -> dict[str, list[str]]:
-    names_by_item = {item.game_path: [name.encode("utf-8") for name in item.sprite_names] for item in items}
-    usage: dict[str, set[str]] = {item.game_path: set(item.state_usage_files) for item in items}
+    names_by_item = {
+        item.game_path: [name.encode("utf-8") for name in item.sprite_names]
+        for item in items
+    }
+    usage: dict[str, set[str]] = {
+        item.game_path: set(item.state_usage_files) for item in items
+    }
     active_items = [item for item in items if names_by_item[item.game_path]]
     if not active_items:
         return {item.game_path: sorted(usage[item.game_path]) for item in items}
@@ -207,7 +274,9 @@ def apply_gfx_replacements(
     replacement: str,
     apply: bool,
 ) -> tuple[dict[str, list[dict[str, Any]]], set[Path]]:
-    replacement_counts: dict[str, list[dict[str, Any]]] = {item.game_path: [] for item in items}
+    replacement_counts: dict[str, list[dict[str, Any]]] = {
+        item.game_path: [] for item in items
+    }
     changed_files: set[Path] = set()
 
     for gfx_path in gfx_files(mod_root):
@@ -215,7 +284,9 @@ def apply_gfx_replacements(
         updated = original
         per_file_counts: list[tuple[DeleteItem, int]] = []
         for item in items:
-            updated, count = replace_case_insensitive(updated, item.game_path, replacement)
+            updated, count = replace_case_insensitive(
+                updated, item.game_path, replacement
+            )
             if count:
                 per_file_counts.append((item, count))
 
@@ -224,7 +295,9 @@ def apply_gfx_replacements(
 
         rel_path = gfx_path.relative_to(mod_root).as_posix()
         for item, count in per_file_counts:
-            replacement_counts[item.game_path].append({"file": rel_path, "count": count})
+            replacement_counts[item.game_path].append(
+                {"file": rel_path, "count": count}
+            )
 
         if apply and updated != original:
             gfx_path.write_bytes(updated)
@@ -233,7 +306,9 @@ def apply_gfx_replacements(
     return replacement_counts, changed_files
 
 
-def delete_files(items: list[DeleteItem], replacement_path: Path, apply: bool) -> list[dict[str, Any]]:
+def delete_files(
+    items: list[DeleteItem], replacement_path: Path, apply: bool
+) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for item in items:
         exists = item.file_path.exists()
@@ -267,22 +342,48 @@ def validate_items(
     for item in items:
         key = normalize_game_path(item.game_path)
         if key == replacement_key:
-            skipped.append({"game_path": item.game_path, "reason": "is_replacement_asset"})
+            skipped.append(
+                {"game_path": item.game_path, "reason": "is_replacement_asset"}
+            )
         elif not allow_non_goal_paths and not key.startswith(DEFAULT_GOAL_MARKER):
-            skipped.append({"game_path": item.game_path, "reason": "outside_gfx_interface_goals"})
+            skipped.append(
+                {"game_path": item.game_path, "reason": "outside_gfx_interface_goals"}
+            )
         elif item.file_path == replacement_path:
-            skipped.append({"game_path": item.game_path, "reason": "resolved_to_replacement_asset"})
+            skipped.append(
+                {"game_path": item.game_path, "reason": "resolved_to_replacement_asset"}
+            )
         else:
             valid.append(item)
     return valid, skipped
 
 
-def main() -> int:
-    args = parse_args()
-    repo_root = args.repo_root.resolve() if args.repo_root else find_repo_root(args.mod_root)
+def args_from_simple_config(
+    review_state_path: str, dry_run: bool
+) -> argparse.Namespace:
+    return argparse.Namespace(
+        review_state=Path(review_state_path),
+        repo_root=None,
+        mod_root=DEFAULT_MOD_ROOT,
+        replacement=DEFAULT_UNKNOWN_GOAL,
+        audit_out=None,
+        allow_non_goal_paths=False,
+        skip_sprite_usage_scan=False,
+        apply=not dry_run,
+    )
+
+
+def main(args: argparse.Namespace | None = None) -> int:
+    if args is None:
+        args = parse_args()
+    repo_root = (
+        args.repo_root.resolve() if args.repo_root else find_repo_root(args.mod_root)
+    )
     mod_root = resolve(args.mod_root, repo_root).resolve()
     review_state = args.review_state.resolve()
-    audit_out = args.audit_out.resolve() if args.audit_out else audit_path_for(review_state)
+    audit_out = (
+        args.audit_out.resolve() if args.audit_out else audit_path_for(review_state)
+    )
     replacement = normalize_slashes(args.replacement)
     replacement_path = (mod_root / replacement).resolve()
 
@@ -294,12 +395,18 @@ def main() -> int:
         raise SystemExit(f"Replacement texture not found: {replacement_path}")
 
     raw_items, skipped = load_deleted_items(review_state, repo_root, mod_root)
-    items, validation_skips = validate_items(raw_items, replacement, replacement_path, args.allow_non_goal_paths)
+    items, validation_skips = validate_items(
+        raw_items, replacement, replacement_path, args.allow_non_goal_paths
+    )
     skipped.extend(validation_skips)
 
     gfx_references = find_gfx_references(items, mod_root)
-    replacement_counts, changed_files = apply_gfx_replacements(items, mod_root, replacement, args.apply)
-    sprite_usage_files = {} if args.skip_sprite_usage_scan else scan_sprite_usages(items, mod_root)
+    replacement_counts, changed_files = apply_gfx_replacements(
+        items, mod_root, replacement, args.apply
+    )
+    sprite_usage_files = (
+        {} if args.skip_sprite_usage_scan else scan_sprite_usages(items, mod_root)
+    )
     delete_results = delete_files(items, replacement_path, args.apply)
 
     audit_items = []
@@ -313,7 +420,9 @@ def main() -> int:
                 "decided_at": item.decided_at,
                 "sprite_names": item.sprite_names,
                 "state_usage_files": item.state_usage_files,
-                "sprite_usage_files": sprite_usage_files.get(item.game_path, item.state_usage_files),
+                "sprite_usage_files": sprite_usage_files.get(
+                    item.game_path, item.state_usage_files
+                ),
                 "gfx_references": gfx_references.get(item.game_path, []),
                 "gfx_replacements": replacement_counts.get(item.game_path, []),
             }
@@ -323,8 +432,12 @@ def main() -> int:
         {entry["file"] for entries in replacement_counts.values() for entry in entries}
     )
     deleted_count = sum(1 for result in delete_results if result["deleted"])
-    delete_candidates = sum(1 for result in delete_results if result["exists"] and not result["reason"])
-    replacement_total = sum(entry["count"] for entries in replacement_counts.values() for entry in entries)
+    delete_candidates = sum(
+        1 for result in delete_results if result["exists"] and not result["reason"]
+    )
+    replacement_total = sum(
+        entry["count"] for entries in replacement_counts.values() for entry in entries
+    )
 
     audit = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -341,7 +454,9 @@ def main() -> int:
             "files_to_delete": delete_candidates,
             "files_deleted": deleted_count,
         },
-        "changed_gfx_files": sorted(path.relative_to(mod_root).as_posix() for path in changed_files),
+        "changed_gfx_files": sorted(
+            path.relative_to(mod_root).as_posix() for path in changed_files
+        ),
         "files_with_replacements": files_with_replacements,
         "delete_results": delete_results,
         "items": audit_items,
@@ -351,13 +466,31 @@ def main() -> int:
 
     action = "Applied" if args.apply else "Dry run"
     print(f"{action}: {len(items)} valid delete item(s), {len(skipped)} skipped.")
-    print(f"{'Edited' if args.apply else 'Would edit'} {len(files_with_replacements)} .gfx file(s), {replacement_total} texture reference(s).")
-    print(f"{'Deleted' if args.apply else 'Would delete'} {deleted_count if args.apply else delete_candidates} image file(s).")
+    print(
+        f"{'Edited' if args.apply else 'Would edit'} {len(files_with_replacements)} .gfx file(s), {replacement_total} texture reference(s)."
+    )
+    print(
+        f"{'Deleted' if args.apply else 'Would delete'} {deleted_count if args.apply else delete_candidates} image file(s)."
+    )
     print(f"Audit: {audit_out}")
     if not args.apply:
-        print("No files changed. Re-run with --apply to perform the edits and deletions.")
+        print(
+            "No files changed. Re-run with --apply to perform the edits and deletions."
+        )
     return 0
 
 
 if __name__ == "__main__":
+    # Simple run config:
+    # Paste a review_state path here, then run this file with no command-line args.
+    # Keep DRY_RUN = True to audit only. Set DRY_RUN = False to edit .gfx files and delete images.
+    REVIEW_STATE_PATH = r"review/goal_icon_swipe_app/goal_icon_review_state (8).json"
+    DRY_RUN = False
+
+    if len(sys.argv) == 1:
+        if not REVIEW_STATE_PATH:
+            raise SystemExit(
+                "Paste a review_state JSON path into REVIEW_STATE_PATH, or pass it as a command-line argument."
+            )
+        raise SystemExit(main(args_from_simple_config(REVIEW_STATE_PATH, DRY_RUN)))
     raise SystemExit(main())
