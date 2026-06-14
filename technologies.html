@@ -22,9 +22,15 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 .tab { display:inline-flex; align-items:center; min-height:34px; padding:7px 11px; border:1px solid var(--line); border-radius:6px; color:var(--muted); text-decoration:none; background:#171d25; }
 .tab:hover { border-color:var(--accent); color:var(--text); }
 .tab.active { color:var(--text); border-color:#397184; background:#18333d; }
-.tab.view-tab { border-style:dashed; }
 .top-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-.layout { display:grid; grid-template-columns:minmax(0,1fr) 340px; min-height:calc(100vh - 62px); }
+.view-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 18px; border-bottom:1px solid var(--line); background:#151a22; }
+.view-label { color:var(--muted); font-size:13px; }
+.view-label strong { color:var(--text); }
+.view-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+.view-tab { display:inline-flex; align-items:center; min-height:32px; padding:6px 11px; border:1px solid var(--line); border-radius:6px; color:var(--muted); text-decoration:none; background:#10151c; }
+.view-tab:hover { border-color:var(--accent); color:var(--text); }
+.view-tab.active { color:var(--text); border-color:#397184; background:#18333d; }
+.layout { display:grid; grid-template-columns:minmax(0,1fr) 340px; min-height:calc(100vh - 111px); }
 main { display:grid; place-items:center; padding:18px; }
 .card { width:min(760px,100%); background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
 .image-wrap { display:grid; place-items:center; min-height:420px; padding:24px; background-color:#0c0f14; background-image:url("cwic_ab_preview_bg.png"); background-repeat:repeat; background-size:317px 317px; background-position:center; }
@@ -74,7 +80,7 @@ pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1p
 .gallery-path { font-size:11px; color:var(--muted); word-break:break-word; max-height:46px; overflow:auto; }
 .gallery-actions { display:flex; gap:6px; flex-wrap:wrap; padding:0 9px 9px; }
 .gallery-actions button { padding:5px 7px; font-size:12px; }
-@media (max-width:980px) { header { align-items:flex-start; flex-direction:column; } .top-actions { justify-content:flex-start; } .layout { grid-template-columns:1fr; } aside { border-left:0; border-top:1px solid var(--line); } .image-wrap { min-height:300px; } }
+@media (max-width:980px) { header, .view-bar { align-items:flex-start; flex-direction:column; } .top-actions { justify-content:flex-start; } .layout { grid-template-columns:1fr; } aside { border-left:0; border-top:1px solid var(--line); } .image-wrap { min-height:300px; } }
 </style>
 </head>
 <body>
@@ -85,8 +91,6 @@ pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1p
     <a class="tab" href="index.html">Goal Icons</a>
     <a class="tab" href="portraits.html">Portraits</a>
     <a class="tab active" href="technologies.html">Technologies</a>
-    <a class="tab view-tab" data-view-tab="kept" href="technologies.html?view=kept">Kept</a>
-    <a class="tab view-tab" data-view-tab="deleted" href="technologies.html?view=deleted">Deleted</a>
     </nav>
   </div>
   <div class="top-actions">
@@ -96,6 +100,14 @@ pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1p
     <label><input id="importState" type="file" accept="application/json" hidden><button type="button" id="importStateButton">Import state</button></label>
   </div>
 </header>
+<div class="view-bar">
+  <div class="view-label">Viewing <strong>Technologies</strong></div>
+  <nav class="view-tabs" aria-label="Technologies review views">
+    <a class="view-tab" data-view-tab="review" href="technologies.html">Review</a>
+    <a class="view-tab" data-view-tab="kept" href="technologies.html?view=kept">Kept</a>
+    <a class="view-tab" data-view-tab="deleted" href="technologies.html?view=deleted">Deleted</a>
+  </nav>
+</div>
 <div class="layout">
   <main>
     <section class="card" id="card"></section>
@@ -150,6 +162,7 @@ pre { white-space:pre-wrap; word-break:break-word; background:#0e1117; border:1p
 <script src="technologies-data.js"></script>
 <script>
 const DATASET_HASH = "2b836dd3bffe68cc";
+const DATASET_LABEL = "Technologies";
 const EXPORT_PREFIX = "technology";
 const STORAGE_KEY = `cwicABTesterSwipeState:v2:${EXPORT_PREFIX}:${DATASET_HASH}`;
 const LEGACY_STORAGE_KEY = `cwicGoalIconSwipeState:v1:${DATASET_HASH}`;
@@ -443,6 +456,7 @@ function render() {
 function renderOverview(view) {
   const decision = view === 'kept' ? 'keep' : 'delete';
   const title = view === 'kept' ? 'Kept' : 'Deleted';
+  const fullTitle = `${DATASET_LABEL} / ${title}`;
   const alternateDecision = decision === 'keep' ? 'delete' : 'keep';
   const alternateLabel = decision === 'keep' ? 'Delete' : 'Keep';
   const entries = Object.values(state.decisions || {})
@@ -456,14 +470,14 @@ function renderOverview(view) {
   renderList(el('usageFiles'), []);
 
   if (!entries.length) {
-    el('card').innerHTML = `<div class="gallery-head"><h2>${title}</h2><span class="small">0 items</span></div><div class="empty">No ${title.toLowerCase()} items yet.</div>`;
+    el('card').innerHTML = `<div class="gallery-head"><h2>${escapeHtml(fullTitle)}</h2><span class="small">0 items</span></div><div class="empty">No ${title.toLowerCase()} items yet.</div>`;
     updateExportStatus();
     return;
   }
 
   el('card').innerHTML = `
     <div class="gallery-head">
-      <h2>${title}</h2>
+      <h2>${escapeHtml(fullTitle)}</h2>
       <span class="small">${entries.length} item(s)</span>
     </div>
     <div class="gallery-grid">
